@@ -1,0 +1,10 @@
+id=fdroid-priv
+name=F-Droid Privileged Extension
+version=v0.2.3
+versionCode=2030
+author=F-Droid
+description=F-Droid Privileged Extension has elevated permissions which allow it to do installs and deletes. It gives only F-Droid access to its install and delete commands. In order for F-Droid Privileged Extension to get these "privileged" powers, it must be installed as part of your system.
+support=https://f-droid.org/repository/browse/?fdid=org.fdroid.fdroid.privileged
+donate=https://f-droid.org/about
+cacheModule=false
+template=3
