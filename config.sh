@@ -46,11 +46,14 @@ tweakname="tweak.prop"
 # Set to true if you need late_start service script
 LATESTARTSERVICE=false
 
-VERSION="v0.2.3"
+VERSION="v0.2.4"
 REVISION="0.1"
 AUTHOR="F-Droid"
-APKNAME=FDroidPrivileged.apk
-PACKAGENAME=org.fdroid.fdroid.privileged
+APKNAME1=FDroidPrivileged.apk
+PACKAGENAME1=org.fdroid.fdroid.privileged
+
+APKNAME2=F-Droid-0.103-alpha2.apk
+PACKAGENAME2=org.fdroid.fdroid
 
 ##########################################################################################
 # Installation Message
@@ -151,6 +154,7 @@ TESTREMOVAL="
 /system/priv-app/FDroidPrivileged
 /system/priv-app/FDroid
 /system/priv-app/Fdroid
+/system/priv-app/FDroidPrivilegedExtension
 "
 
 SPREADREMOVAL="
@@ -160,6 +164,7 @@ FDroid.apk
 f-droid.apk
 F-droid.apk
 F-Droid.apk
+FDroidPrivilegedExtension.apk
 "
 
 ##########################################################################################

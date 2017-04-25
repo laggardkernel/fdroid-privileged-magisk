@@ -140,38 +140,40 @@ install_package() {
     # rm -rf /data/data/${2}
 
   elif [ -f "$INSTALLER/common/$1" ]; then
-    ui_print "- Installing ${1%.apk} into /data"
-    APKPATH="$2"-1
-    for i in `ls /data/app | grep "$2"-`; do
-      if [ `cat /data/system/packages.xml | grep $i >/dev/null 2>&1; echo $?` -eq 0 ]; then
-        APKPATH=$i
-        break;
+    if [ ! -z "$3" -a "$3" = "force" ] || [ -z `ls /data/app | grep "$2"-` ]; then
+      ui_print "- Installing ${1%.apk} into /data"
+      APKPATH="$2"-1
+      for i in 1 2 3 4 5 6 7 8 9; do
+        if [ `cat /data/system/packages.xml | grep "$2"-$i >/dev/null 2>&1; echo $?` -eq 0 ]; then
+          APKPATH="$2"-$i
+          break;
+        fi
+      done
+      rm -rf /data/app/"$2"-*
+  
+      ui_print "  target path: /data/app/$APKPATH"
+  
+      mkdir -p /data/app/$APKPATH
+      chown 1000.1000 /data/app/$APKPATH
+      chmod 0755 /data/app/$APKPATH
+      chcon u:object_r:apk_data_file:s0 /data/app/$APKPATH
+  
+      cp $INSTALLER/common/$1 /data/app/$APKPATH/base.apk
+      chown 1000.1000 /data/app/$APKPATH/base.apk
+      chmod 0644 /data/app/$APKPATH/base.apk
+      chcon u:object_r:apk_data_file:s0 /data/app/$APKPATH/base.apk
+  
+      rm /data/$1 2>/dev/null
+  
+      # enable xposed module
+      if [ ! -z "$4" -a "$4" == "xposed" ]; then
+        enable_xposed_package "$1" "$2" "/data/app/$APKPATH/base.apk"
       fi
-    done
-    rm -rf /data/app/"$2"-*
-
-    ui_print "  target path: /data/app/$APKPATH"
-
-    mkdir -p /data/app/$APKPATH
-    chown 1000.1000 /data/app/$APKPATH
-    chmod 0755 /data/app/$APKPATH
-    chcon u:object_r:apk_data_file:s0 /data/app/$APKPATH
-
-    cp $INSTALLER/common/$1 /data/app/$APKPATH/base.apk
-    chown 1000.1000 /data/app/$APKPATH/base.apk
-    chmod 0644 /data/app/$APKPATH/base.apk
-    chcon u:object_r:apk_data_file:s0 /data/app/$APKPATH/base.apk
-
-    rm /data/$1 2>/dev/null
-
-    # enable xposed module
-    if [ ! -z "$3" -a "$3" == "xposed" ]; then
-      enable_xposed_package "$1" "$2" "/data/app/$APKPATH/base.apk"
     fi
-
+  
   else
     ui_print "! ${1%.apk} is not included, install it later by yourself"
-
+  
   fi
 }
 
@@ -416,7 +418,7 @@ ui_print "- Cleaning conflicts in /data"
 # rm -rf /data/data/com.atmos
 # rm -rf /data/app/com.atmos.daxappUI-*
 # rm -rf /data/data/com.atmos.daxappUI
-rm -rf /data/app/${PACKAGENAME}-*
+rm -rf /data/app/${PACKAGENAME1}-*
 rm -rf $MODPATH
 
 # Create mod paths
@@ -489,7 +491,27 @@ fi
 # cp -af $LIBV4A $MODPATH/system/lib/soundfx/libv4a_fx_ics.so
 
 # Install package
-# install_package "$APKNAME" "$PACKAGENAME"
+install_package "$APKNAME2" "$PACKAGENAME2" normal
+
+# Enable Privileged Extension in F-Droid's setting
+SETTINGSCONF="/data/data/${PACKAGENAME2}/shared_prefs/${PACKAGENAME2}_preferences.xml"
+
+if [ ! -f "$SETTINGSCONF" ]; then
+  mktouch "$SETTINGSCONF"
+  echo "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>" > "$SETTINGSCONF"
+  echo "<map>" >> "$SETTINGSCONF"
+  echo "    <boolean name=\"privilegedInstaller\" value=\"true\" />" >> "$SETTINGSCONF"
+  echo "    <boolean name=\"expert\" value=\"true\" />" >> "$SETTINGSCONF"
+  echo "</map>" >> "$SETTINGSCONF"
+else
+  for ITEM in privilegedInstaller expert; do
+    if [ `cat "$SETTINGSCONF" | grep "$ITEM" >/dev/null 2>&1; echo $?` -ne 0 ]; then
+      sed -i "/<\/map>/ i \    <boolean name=\"$ITEM\" value=\"true\" \/>" "$SETTINGSCONF"
+    else
+      sed -i "s/name=\"$ITEM\" value=\"false\"/name=\"$ITEM\" value=\"true\"/" "$SETTINGSCONF"
+    fi
+  done
+fi
 
 # build property database patch for MOD by resetprop, through a
 # property file called "custom_build.prop" or any other name, default name system.prop
